@@ -218,19 +218,19 @@ similar will add all tools to the respective client:
 ;;; Tools
 
 (llm-tool-collection-deftool read-file
-  (:category "filesystem" :tags (filesystem editing) :confirm t :include t)
-  ((path "Path to the file to read. Supports relative paths and '~'."
-         :type string))
-  "Read the contents of a file and return its content as a string."
+    (:category "filesystem" :tags (filesystem editing) :confirm t :include t)
+    ((path "Path to the file to read. Supports relative paths and '~'."
+           :type string))
+    "Read the contents of a file and return its content as a string."
   (with-temp-buffer
     (insert-file-contents (expand-file-name path))
     (buffer-string)))
 
 (llm-tool-collection-deftool list-directory
-  (:category "filesystem" :tags (filesystem) :confirm t :include t)
-  ((path "Path to the directory. Supports relative paths and '~'."
-         :type string))
-  "List the contents of a specified directory."
+    (:category "filesystem" :tags (filesystem) :confirm t :include t)
+    ((path "Path to the directory. Supports relative paths and '~'."
+           :type string))
+    "List the contents of a specified directory."
   (let ((expanded-path (expand-file-name path)))
     (if (file-directory-p expanded-path)
         (string-join `(,(format "Contents of %s:" path)
@@ -239,10 +239,10 @@ similar will add all tools to the respective client:
       (error "%s is not a directory" expanded-path))))
 
 (llm-tool-collection-deftool create-file
-  (:category "filesystem" :tags (filesystem editing) :confirm t)
-  ((path "Path to the new file. Supports relative paths and '~'." :type string)
-   (content "Content to write to the file." :type string))
-  "Create a new file with the specified content if it does not already exist."
+    (:category "filesystem" :tags (filesystem editing) :confirm t)
+    ((path "Path to the new file. Supports relative paths and '~'." :type string)
+     (content "Content to write to the file." :type string))
+    "Create a new file with the specified content if it does not already exist."
   (let ((expanded-path (expand-file-name path)))
     (if (file-exists-p expanded-path)
         (error "File already exists: %s" expanded-path)
@@ -251,10 +251,10 @@ similar will add all tools to the respective client:
       (format "File created successfully: %s" path))))
 
 (llm-tool-collection-deftool create-directory
-  (:category "filesystem" :tags (filesystem) :confirm t)
-  ((path "Path to the new directory. Supports relative paths and '~'."
-         :type string))
-  "Create a new directory at the specified path if it does not already
+    (:category "filesystem" :tags (filesystem) :confirm t)
+    ((path "Path to the new directory. Supports relative paths and '~'."
+           :type string))
+    "Create a new directory at the specified path if it does not already
 exist."
   (let ((expanded-path (expand-file-name path)))
     (if (file-exists-p expanded-path)
@@ -263,12 +263,12 @@ exist."
       (format "Directory created successfully: %s" path))))
 
 (llm-tool-collection-deftool view-buffer
-  (:category "buffers" :tags (buffers editing))
-  ((buffer-name "Name of the buffer to view." :type string)
-   &optional
-   (offset "Line number to start reading from (0-based)." :type integer)
-   (limit "Maximum number of lines to return." :type integer))
-  "View contents of BUFFER-NAME with optional OFFSET and LIMIT.
+    (:category "buffers" :tags (buffers editing))
+    ((buffer-name "Name of the buffer to view." :type string)
+     &optional
+     (offset "Line number to start reading from (0-based)." :type integer)
+     (limit "Maximum number of lines to return." :type integer))
+    "View contents of BUFFER-NAME with optional OFFSET and LIMIT.
 OFFSET specifies the starting line (0-based).
 LIMIT specifies the maximum number of lines to return."
   (with-current-buffer buffer-name
@@ -280,11 +280,11 @@ LIMIT specifies the maximum number of lines to return."
       (string-join selected-lines "\n"))))
 
 (llm-tool-collection-deftool edit-buffer
-  (:category "buffers" :tags (buffers editing))
-  ((buffer-name "Name of the buffer to modify" :type string)
-   (old-string "Text to replace (must match exactly)" :type string)
-   (new-string "Text to replace old_string with" :type string))
-  "Edits Emacs buffers"
+    (:category "buffers" :tags (buffers editing))
+    ((buffer-name "Name of the buffer to modify" :type string)
+     (old-string "Text to replace (must match exactly)" :type string)
+     (new-string "Text to replace old_string with" :type string))
+    "Edits Emacs buffers"
   (with-current-buffer buffer-name
     (let ((case-fold-search nil))
       (save-excursion
@@ -303,6 +303,35 @@ LIMIT specifies the maximum number of lines to return."
               (search-forward old-string)
               (replace-match new-string t t)
               (format "Successfully edited buffer %s" buffer-name))))))))
+
+(llm-tool-collection-deftool run-command
+    (:category "misc" :tags (command) :async t :include t :enable t)
+    ((command "Command to run." :type "string")
+     &optional
+     (args "Arguments for the command." :type "array"
+           :items (:type "string")))
+    "Execute a command with its arguments"
+  (condition-case error
+      (make-process
+       :name "async-command"
+       :buffer " *async-command*"
+       :command `(,command ,@args ,@nil)
+       :noquery t
+       :sentinel (lambda (proc _)
+                   (unless (process-live-p proc)
+                     (with-current-buffer (process-buffer proc)
+                       (let ((output (buffer-substring-no-properties (point-min) (point-max))))
+                         (kill-buffer (current-buffer))
+                         (funcall callback-fn output))))))
+    (t
+     ;; Handle any kind of error
+     (funcall callback-fn (format "An error occurred: %s" error)))))
+
+(llm-tool-collection-deftool get-current-time
+    (:category "misc" :tags (datetime) :enable t)
+    ()
+    "Get the current time and the local timezone"
+  (format-time-string "%Y-%m-%dT%H:%M:%S%z" (current-time)))
 
 (provide 'llm-tool-collection)
 
