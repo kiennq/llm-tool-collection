@@ -217,7 +217,7 @@ similar will add all tools to the respective client:
 
 ;;; Tools
 
-(llm-tool-collection-deftool read-file
+(llm-tool-collection-deftool read-file-el
     (:category "filesystem" :tags (filesystem editing) :confirm t :include t)
     ((path "Path to the file to read. Supports relative paths and '~'."
            :type string))
@@ -226,7 +226,7 @@ similar will add all tools to the respective client:
     (insert-file-contents (expand-file-name path))
     (buffer-string)))
 
-(llm-tool-collection-deftool list-directory
+(llm-tool-collection-deftool list-directory-el
     (:category "filesystem" :tags (filesystem) :confirm t :include t)
     ((path "Path to the directory. Supports relative paths and '~'."
            :type string))
@@ -238,7 +238,7 @@ similar will add all tools to the respective client:
                      "\n")
       (error "%s is not a directory" expanded-path))))
 
-(llm-tool-collection-deftool create-file
+(llm-tool-collection-deftool create-file-el
     (:category "filesystem" :tags (filesystem editing) :confirm t)
     ((path "Path to the new file. Supports relative paths and '~'." :type string)
      (content "Content to write to the file." :type string))
@@ -250,7 +250,7 @@ similar will add all tools to the respective client:
         (insert content))
       (format "File created successfully: %s" path))))
 
-(llm-tool-collection-deftool create-directory
+(llm-tool-collection-deftool create-directory-el
     (:category "filesystem" :tags (filesystem) :confirm t)
     ((path "Path to the new directory. Supports relative paths and '~'."
            :type string))
