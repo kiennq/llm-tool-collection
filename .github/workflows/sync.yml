@@ -16,7 +16,7 @@ jobs:
       upstream_repo: skissue/llm-tool-collection
       upstream_branch: master
     steps:
-      - uses: actions/checkout@latest
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 20
           # token: ${{ secrets.PAT }} # needed for trigger other workflow
